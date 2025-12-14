@@ -10,8 +10,10 @@ from nav_msgs.msg import Odometry
 class Controle:
     def __init__(self):
 
+        # ===== Setup ROS =====
+
         # ROS Setup
-        rospy.init_node('Controle', anonymous=True)
+        rospy.init_node('Control_node', anonymous=True)
 
         # Publishers
         self.motor_pub  = rospy.Publisher('\motor_cmd', Float32MultiArray, queue_size=10)
@@ -122,6 +124,7 @@ class Controle:
         orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
         (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(orientation_list)
         return yaw
+    
     # ================= LOOP =================
 
     def run(self):
