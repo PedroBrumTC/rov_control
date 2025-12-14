@@ -20,6 +20,7 @@ class Pose:
 
 
         # ===== Parâmetros =====
+        
         # Densidade da água (kg/m³)
         self.rho = 1000.0
         self.g = 9.80665
