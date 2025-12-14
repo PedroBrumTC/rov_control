@@ -1,7 +1,6 @@
 import rospy
 from nav_msgs.msg import Odometry
-from std_msgs.msg import Float32  
-from sensor_msgs.msg import Imu
+from sensor_msgs.msg import Imu, FluidPressure
 
 class Pose:
     def __init__(self):
@@ -15,23 +14,30 @@ class Pose:
 
         # Subscriber
         self.imu_sub = rospy.Subscriber('\imu_data', Imu, self.Imu_callback)
-        self.depth_sub = rospy.Subscriber('\depth', Float32, self.depth_callback)
+        self.pressure_sub = rospy.Subscriber('\pressure_data', FluidPressure, self.pressure_callback)
 
         self.rate = rospy.Rate(10)  # Hz
 
 
         # ===== Parâmetros =====
+        # Densidade da água (kg/m³)
+        self.rho = 1000.0
+        self.g = 9.80665
 
+        # Pressão atmosférica (Pa)
+        self.p0 = 101325.0
+
+        # Variáveis internas
         self.imu = Imu()
-        self.depth = Float32()
+        self.depth = 0.0
 
  # ================= CALLBACKS =================
 
 
     def Imu_callback(self, msg):
         self.imu = msg
-    def depth_callback(self, msg):
-        self.depth = msg
+    def pressure_callback(self, msg):
+         self.depth = (msg.fluid_pressure - self.p0) / (self.rho * self.g)
 
 
 
@@ -39,10 +45,10 @@ class Pose:
 
     def compute_pose(self):
         odom = Odometry()
-        # Preencher odom com os dados do imu e depth
-        # Exemplo simplificado:
         odom.pose.pose.orientation = self.imu.orientation
-        odom.pose.pose.position.z = self.depth.data
+        odom.twist.twist.angular = self.imu.angular_velocity
+        odom.pose.pose.position.z = self.depth
+
         return odom
 
 # ================= LOOP =================
