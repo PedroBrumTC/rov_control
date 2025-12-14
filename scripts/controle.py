@@ -101,7 +101,6 @@ class Controle:
                          self.ki_depth * self.depth_error_i +
                          self.kd_depth * depth_error_d)
         
-        # Publica comandos dos motores
         return [yaw_control, depth_control]
 
     def distribute_motor_commands(self, yaw_control, depth_control):
@@ -109,7 +108,7 @@ class Controle:
         Distribui os sinais de controle para os motores do ROV.
         """
         motor_cmd = Float32MultiArray()
-        # Exemplo simples de distribuição (ajustar conforme a configuração do ROV)
+
         motor_cmd.data = [depth_control,
                           depth_control,
                           yaw_control,
