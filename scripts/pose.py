@@ -13,11 +13,11 @@ class Pose:
         rospy.init_node('Pose_node', anonymous=True)
 
         # Publisher
-        self.state_pub = rospy.Publisher('\state', Odometry, queue_size=10)
+        self.state_pub = rospy.Publisher('state', Odometry, queue_size=10)
 
         # Subscriber
-        self.imu_sub = rospy.Subscriber('\imu_data', Imu, self.Imu_callback)
-        self.pressure_sub = rospy.Subscriber('\pressure_data', FluidPressure, self.pressure_callback)
+        self.imu_sub = rospy.Subscriber('imu_data', Imu, self.Imu_callback)
+        self.pressure_sub = rospy.Subscriber('pressure_data', FluidPressure, self.pressure_callback)
 
         self.rate = rospy.Rate(10)  # Hz
 

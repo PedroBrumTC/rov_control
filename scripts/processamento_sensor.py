@@ -13,12 +13,12 @@ class processamento:
         rospy.init_node('processamento_sensor', anonymous=True)
 
         # Publisher
-        self.imu_pub = rospy.Publisher('\imu_data', Imu, queue_size=10)
-        self.pressure_pub = rospy.Publisher('\pressure_data', FluidPressure, queue_size=10)
+        self.imu_pub = rospy.Publisher('imu_data', Imu, queue_size=10)
+        self.pressure_pub = rospy.Publisher('pressure_data', FluidPressure, queue_size=10)
 
         # Subscriber
-        self.imu_sub = rospy.Subscriber('\imu_raw', Imu, self.imu_callback)
-        self.pressure_sub = rospy.Subscriber('\pressure_raw', FluidPressure, self.pressure_callback)
+        self.imu_sub = rospy.Subscriber('imu_raw', Imu, self.imu_callback)
+        self.pressure_sub = rospy.Subscriber('pressure_raw', FluidPressure, self.pressure_callback)
 
         self.rate = rospy.Rate(10)  # Hz
 

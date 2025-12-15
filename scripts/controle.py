@@ -20,11 +20,11 @@ class Controle:
         rospy.init_node('Control_node', anonymous=True)
 
         # Publishers
-        self.motor_pub  = rospy.Publisher('\motor_cmd', Float32MultiArray, queue_size=10)
+        self.motor_pub  = rospy.Publisher('motor_cmd', Float32MultiArray, queue_size=10)
 
         # Subscribers
-        self.sub_state = rospy.Subscriber('\state', Odometry, self.state_callback)
-        self.sub_input = rospy.Subscriber('\cmd_vel', Twist, self.cmd_callback)
+        self.sub_state = rospy.Subscriber('state', Odometry, self.state_callback)
+        self.sub_input = rospy.Subscriber('cmd_vel', Twist, self.cmd_callback)
 
         self.rate = rospy.Rate(10)  # Hz
 
