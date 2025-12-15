@@ -67,7 +67,7 @@ class Controle:
     def compute_control(self):
         """
         Implementa o controle PID para yaw e profundidade.
-        Calcula os sinais de controle e publica os comandos dos motores.
+        Calcula os sinais de controle.
         """
         
         now = rospy.Time.now()
@@ -113,6 +113,8 @@ class Controle:
         """
         motor_cmd = Float32MultiArray()
 
+        # exemplo basico com 4 motores (2 para profundidade e 2 para avançar e rotacionar)
+        # Falta o sinal de avanço do ROV
         motor_cmd.data = [depth_control,
                           depth_control,
                           yaw_control,
