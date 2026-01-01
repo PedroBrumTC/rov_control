@@ -27,14 +27,15 @@ class processamento:
         
 
         # Filtros de média móvel (exponencial)
-        self.alpha_imu = 0.9
-        self.alpha_pressure = 0.95
+        self.alpha_imu = rospy.get_param('~alfa/imu')
+        self.alpha_pressure = rospy.get_param('~alfa/pressure')
 
         # Offsets para calibração
-        self.accel_offset = [0.0, 0.0, 9.81] 
-        self.angular_velocity_offset = [0.0, 0.0, 0.0]
-        self.orientation_offset = [0.0, 0.0, 0.0, 0.0]
-        self.pressure_offset = 0.0
+        self.accel_offset = rospy.get_param('~offset/accel')
+        self.angular_velocity_offset = rospy.get_param('~offset/angular_velocity')
+        self.orientation_offset = rospy.get_param('~offset/orientation')
+
+        self.pressure_offset = rospy.get_param('~offset/pressure')
 
         # Variáveis internas
         self.filtered_imu = Imu()
@@ -112,7 +113,7 @@ class processamento:
         
 
     def pressure_callback(self, msg):
-        raw_pressure = msg.fluid_pressure - self.pressure_offset
+        raw_pressure = msg.fluid_pressure 
         prev_pressure = self.filtered_pressure.fluid_pressure
         
         pressure_f = self.alpha_pressure * prev_pressure + (1 - self.alpha_pressure) * raw_pressure 

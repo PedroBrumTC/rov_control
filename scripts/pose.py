@@ -24,13 +24,11 @@ class Pose:
 
         # ===== Parâmetros =====
         
-        # Densidade da água (kg/m³)
-        self.rho = 1000.0
-        self.g = 9.80665
-
-        # Pressão atmosférica (Pa)
-        self.p0 = 101325.0
-
+        self.rho = rospy.get_param('~rho')
+        self.g = rospy.get_param('~g')
+        self.p0 = rospy.get_param('~patmospheric_pressure')
+        self.depth_offset = rospy.get_param('~depth_offset')
+        
         # Variáveis internas
         self.imu = Imu()
         self.depth = 0.0
@@ -41,7 +39,7 @@ class Pose:
     def Imu_callback(self, msg):
         self.imu = msg
     def pressure_callback(self, msg):
-         self.depth = (msg.fluid_pressure - self.p0) / (self.rho * self.g)
+         self.depth = (msg.fluid_pressure - self.p0) / (self.rho * self.g) + self.depth_offset
 
 
 

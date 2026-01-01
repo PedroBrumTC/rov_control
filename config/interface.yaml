@@ -1,0 +1,12 @@
+interface:
+  step:
+    linear: 0.1
+    angular: 0.1
+
+  limits:
+    linear: 1.0
+    angular: 1.0
+
+  depth:
+    min: 0.0
+    max: 10.0

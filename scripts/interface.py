@@ -3,6 +3,8 @@
 import rospy
 import FreeSimpleGUI as sg
 import math
+import numpy as np
+from tf.transformations import quaternion_matrix
 
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
@@ -43,14 +45,14 @@ class InterfaceNode:
         rospy.init_node("interface_node")
 
         # ================== PARÂMETROS ==================
-        self.step_linear = 0.1
-        self.step_angular = 0.1
+        self.step_linear = rospy.get_param('~step/linear')
+        self.step_angular = rospy.get_param('~step/angular')
 
-        self.max_linear = 1.0
-        self.max_angular = 1.0
+        self.max_linear = rospy.get_param('~limits/linear')
+        self.max_angular = rospy.get_param('~limits/angular')
 
-        self.min_depth = 0.0
-        self.max_depth = 10.0
+        self.min_depth = rospy.get_param('~depth/min')
+        self.max_depth = rospy.get_param('~depth/max')
 
         # ================== ROS ==================
         self.cmd_pub = rospy.Publisher(
@@ -174,52 +176,49 @@ class InterfaceNode:
         self.draw_static_elements()
         
 
+
+    # ================= UTIL =================
+    def compute_tilt_sim(self, q):
+
+        # Matriz de rotação (world -> body)
+        R = quaternion_matrix(q)
+
+        # Gravidade no mundo (Z para cima)
+        g_world = np.array([0, 0, -1, 1])
+
+        # Gravidade no frame do corpo
+        g_body = R.T @ g_world
+        gx, gy, gz = g_body[:3]
+
+        # Roll → inclinação lateral (em torno de X)
+        roll = np.arctan2(gx, -gz)
+        roll = np.degrees(roll)  - 90
+        # Pitch → inclinação frontal (em torno de Y)
+        pitch = np.arctan2(gy, -gz)
+        pitch = np.degrees(pitch)
+
+        return roll, pitch
+
+    def clamp(self, v, vmin, vmax):
+        return max(min(v, vmax), vmin)
+
     # ================= ROS CALLBACKS =================
 
     def state_callback(self, msg):
         self.depth = msg.pose.pose.position.z
-        _, self.roll, self.pitch = self.quat_to_yaw_roll_pitch(msg.pose.pose.orientation)
 
-    # ================= UTIL =================
+        q = [
+            msg.pose.pose.orientation.x,
+            msg.pose.pose.orientation.y,
+            msg.pose.pose.orientation.z,
+            msg.pose.pose.orientation.w
+        ]
 
-    def quat_to_yaw_roll_pitch(self, q):
-        """
-        Converte quaternion (w, x, y, z) para yaw, roll e pitch (em graus)
+        roll, pitch = self.compute_tilt_sim(q)
 
-        Retorno:
-            yaw   -> rotação em torno de Z
-            roll  -> rotação em torno de X
-            pitch -> rotação em torno de Y
-        """
+        # rospy.loginfo(f"R={roll:.2f}, P={pitch:.2f}")
+        self.roll, self.pitch = roll, pitch
 
-        # Roll (X-axis rotation)
-        sinr_cosp = 2.0 * (q.w * q.x + q.y * q.z)
-        cosr_cosp = 1.0 - 2.0 * (q.x * q.x + q.y * q.y)
-        roll = math.atan2(sinr_cosp, cosr_cosp)
-
-        # Pitch (Y-axis rotation)
-        sinp = 2.0 * (q.w * q.y - q.z * q.x)
-
-        # Proteção contra erro numérico
-        if abs(sinp) >= 1:
-            pitch = math.copysign(math.pi / 2, sinp)
-        else:
-            pitch = math.asin(sinp)
-
-        # Yaw (Z-axis rotation)
-        siny_cosp = 2.0 * (q.w * q.z + q.x * q.y)
-        cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z)
-        yaw = math.atan2(siny_cosp, cosy_cosp)
-
-        # Converte para graus (opcional)
-        yaw = math.degrees(yaw)
-        roll = math.degrees(roll)
-        pitch = math.degrees(pitch)
-
-        return yaw, roll, pitch
-
-    def clamp(self, v, vmin, vmax):
-        return max(min(v, vmax), vmin)
 
 
 # ================== DESENHOS FIXOS ==================
@@ -364,8 +363,6 @@ class InterfaceNode:
             width=3
         )
 
-   
-   
     # ================== INPUT TECLAS ==================
     def input_key_state(self):
     # Atualiza comandos (valores de exemplo)
@@ -407,8 +404,6 @@ class InterfaceNode:
 
         self.cmd_pub.publish(cmd)
 
-    
-    
     # ================= LOOP =================
 
     def run(self):
@@ -432,13 +427,10 @@ class InterfaceNode:
                     self.key_state[key] = True
                 
                 
-            self.update_measured_depth(self.cmd_depth)
+            self.update_measured_depth(self.depth)
 
-            pitch = self.pitch + self.cmd_rotation  # Exemplo de variação
-            roll = self.roll + self.cmd_velocity # Exemplo de variação
-
-            self.update_tilt(pitch, roll)
-            self.update_horizon(pitch, roll)
+            self.update_tilt(self.pitch, self.roll)
+            self.update_horizon(self.pitch, self.roll)
             self.input_key_state()
 
 

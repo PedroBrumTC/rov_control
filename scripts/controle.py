@@ -30,12 +30,17 @@ class Controle:
         # ===== Parâmetros =====
 
         # Constantes PID 
-        self.kp_depth = 1.0
-        self.ki_depth = 0.0
-        self.kd_depth = 0.0
+        pid = rospy.get_param("~pid")
+        self.kp = pid['kp']
+        self.ki = pid['ki']
+        self.kd = pid['kd']
 
+        # Limites de sinal
+        self.max_signal = rospy.get_param('~max_signal')
+        self.min_signal = rospy.get_param('~min_signal')
+        
+        
         # variaveis internas
-
         self.cmd = Twist()
         self.state = Odometry()
 
@@ -45,16 +50,30 @@ class Controle:
         self.yaw_error_i = 0.0
         self.depth_error_i = 0.0
 
+        self.depth_control = 0.0
+
 
  # ================= CALLBACKS =================
 
 
     def state_callback(self, msg):
-        self.pose = msg
+        self.state = msg
     
     def cmd_callback(self, msg):
         self.cmd = msg
 
+    # ================= UTIL =================
+
+    def clip_signal(self, signal):
+        """
+        Limita o sinal de controle aos valores máximos e mínimos permitidos.
+        """
+        if signal > self.max_signal:
+            return self.max_signal
+        elif signal < self.min_signal:
+            return self.min_signal
+        else:
+            return signal
     # ================= CONTROLE =================
 
 
@@ -63,7 +82,7 @@ class Controle:
         Implementa o controle PID para profundidade.
         Calcula os sinais de controle.
         """
-        
+
         now = rospy.Time.now()
         dt = (now - self.last_time).to_sec()
         self.last_time = now
@@ -76,19 +95,22 @@ class Controle:
 
         # Calcula erros
         depth_error = desired_depth - current_depth
+
         self.depth_error_i += depth_error * dt
         depth_error_d = depth_error / dt
 
         # Sinais de controle PID
-        
-        depth_control = self.kp_depth * depth_error + self.ki_depth * self.depth_error_i + self.kd_depth * depth_error_d
-        
-        return depth_control
+        self.depth_control = self.kp * depth_error + self.ki * self.depth_error_i + self.kd * depth_error_d
+        self.depth_control = self.clip_signal(self.depth_control)
 
-    def distribute_motor_commands(self, forward, rotate, depth_control):
+
+    def distribute_motor_commands(self):
         """
         Distribui os sinais de controle para os motores do ROV.
         """
+        forward = self.cmd.linear.x
+        rotate = self.cmd.angular.z
+        depth_control = self.depth_control
         
         if rotate != 0 and forward != 0:
             left = (3*forward + rotate)/3
@@ -100,18 +122,15 @@ class Controle:
         motor_cmd = Float32MultiArray()
         motor_cmd.data = [left, right, depth_control] 
         # Falta o sinal de avanço do ROV
+        self.motor_pub.publish(motor_cmd) 
         
-        return motor_cmd
 
     # ================= LOOP =================
 
     def run(self):
         while not rospy.is_shutdown():
-            forward = self.cmd.linear.x
-            rotate = self.cmd.angular.z
-            depth_control = self.compute_control()
-            motors = self.distribute_motor_commands(forward, rotate, depth_control)      
-            self.motor_pub.publish(motors) 
+            self.compute_control()
+            self.distribute_motor_commands()      
             self.rate.sleep()
 
 if __name__ == '__main__':

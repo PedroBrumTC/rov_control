@@ -1,0 +1,15 @@
+<launch>
+
+    <rosparam
+        file="$(find rov_control)/config/pose.yaml"
+        command="load"
+    />
+
+    <node
+        pkg="rov_control"
+        type="pose.py"
+        name="pose"
+        output="screen"
+    />
+
+</launch>

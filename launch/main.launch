@@ -1,0 +1,37 @@
+<launch>
+
+    <!-- ========================= -->
+    <!-- Argumentos globais -->
+    <!-- ========================= -->
+
+    <arg name="simulacao" default="true" />
+
+    <!-- ========================= -->
+    <!-- Nós do ROV -->
+    <!-- ========================= -->
+    
+    <include file="$(find rov_control)/launch/controle.launch" />
+    <include file="$(find rov_control)/launch/pose.launch" />
+    <include file="$(find rov_control)/launch/interface.launch" />
+    <include file="$(find rov_control)/launch/processamento_sensor.launch" />
+
+    <!-- ========================= -->
+    <!-- simulação -->
+    <!-- ========================= -->
+
+     <!-- Unity / Simulação -->
+    <group if="$(eval arg('simulacao'))">
+        <node
+            name="ros_tcp_endpoint_server"
+            pkg="ros_tcp_endpoint"
+            type="default_server_endpoint.py"
+            output="screen"
+        />
+    </group>
+
+    <!-- Hardware real -->
+    <group if="$(eval not arg('simulacao'))">
+        <include file="$(find rov_control)/launch/comunicacao.launch" />
+    </group>
+
+</launch>

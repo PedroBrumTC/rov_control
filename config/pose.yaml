@@ -1,0 +1,5 @@
+pose:
+  rho: 1000.0  # kg/m3
+  g: 9.80665  # m/s²
+  patmospheric_pressure: 101325.0  # Pa
+  depth_offset: 0.0  # m

@@ -1,0 +1,15 @@
+<launch>
+
+    <rosparam
+        file="$(find rov_control)/config/interface.yaml"
+        command="load"
+    />
+
+    <node
+        pkg="rov_control"
+        type="interface.py"
+        name="interface"
+        output="screen"
+    />
+
+</launch>

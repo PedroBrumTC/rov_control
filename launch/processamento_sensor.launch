@@ -1,0 +1,15 @@
+<launch>
+
+    <rosparam
+        file="$(find rov_control)/config/processamento_sensor.yaml"
+        command="load"
+    />
+
+    <node
+        pkg="rov_control"
+        type="processamento_sensor.py"
+        name="processamento_sensor"
+        output="screen"
+    />
+
+</launch>
