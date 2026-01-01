@@ -1,0 +1,42 @@
+# ================================
+# Unity
+# ================================
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# Memory captures
+MemoryCaptures/
+
+# Asset Store tools cache
+AssetStoreTools/
+
+# ================================
+# IDEs / Editores
+# ================================
+.vs/
+.vscode/
+.idea/
+*.csproj
+*.sln
+*.user
+*.userprefs
+*.pidb
+*.booproj
+
+# ================================
+# Sistema Operacional
+# ================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ================================
+# ROS / Logs externos
+# ================================
+*.bag
+*.log
