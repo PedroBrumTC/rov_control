@@ -3,6 +3,6 @@ controle:
   min_signal: -1.0
 
   pid:
-    kp: 25
+    kp: 1.5
     ki: 0.001
-    kd: 30.0
+    kd: 3.00
