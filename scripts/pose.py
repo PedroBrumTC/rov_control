@@ -47,6 +47,8 @@ class Pose:
 
     def compute_pose(self):
         odom = Odometry()
+        odom.header.stamp = rospy.Time.now()
+        odom.header.frame_id = "odom"
         odom.pose.pose.orientation = self.imu.orientation
         odom.twist.twist.angular = self.imu.angular_velocity
         odom.pose.pose.position.z = self.depth

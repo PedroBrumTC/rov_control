@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   tf
+  dynamic_reconfigure
 )
 
 ## System dependencies are found with CMake's conventions
@@ -90,11 +91,11 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * uncomment the "generate_dynamic_reconfigure_options" section below
 ##     and list every .cfg file to be processed
 
-## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
+# Generate dynamic reconfigure parameters in the 'cfg' folder
+generate_dynamic_reconfigure_options(
+  cfg/PID.cfg
+)
+
 
 ###################################
 ## catkin specific configuration ##
@@ -108,7 +109,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES rov_control
-#  CATKIN_DEPENDS geometry_msgs nav_msgs rospy sensor_msgs std_msgs tf
+#  CATKIN_DEPENDS dynamic_reconfigure geometry_msgs nav_msgs rospy sensor_msgs std_msgs tf
 #  DEPENDS system_lib
 )
 

@@ -3,6 +3,8 @@
 
 
 import rospy
+from dynamic_reconfigure.server import Server
+from rov_control.cfg import PIDConfig
 
 from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import Twist
@@ -34,6 +36,8 @@ class Controle:
         self.kp = pid['kp']
         self.ki = pid['ki']
         self.kd = pid['kd']
+        
+        self.server = Server(PIDConfig, self.dyn_reconf_callback)
 
         # Limites de sinal
         self.max_signal = rospy.get_param('~max_signal')
@@ -47,14 +51,22 @@ class Controle:
         self.last_time = rospy.Time.now()
 
         # Erros PID
-        self.yaw_error_i = 0.0
-        self.depth_error_i = 0.0
+        self.depth_error_acc = 0.0
+        self.last_depth_error = 0.0
 
         self.depth_control = 0.0
 
 
  # ================= CALLBACKS =================
+    def dyn_reconf_callback(self, config, level):
+        self.kp = config.kp
+        self.ki = config.ki
+        self.kd = config.kd
 
+        rospy.loginfo(
+            f"PID atualizado: kp={self.kp}, ki={self.ki}, kd={self.kd}"
+        )
+        return config
 
     def state_callback(self, msg):
         self.state = msg
@@ -96,11 +108,11 @@ class Controle:
         # Calcula erros
         depth_error = desired_depth - current_depth
 
-        self.depth_error_i += depth_error * dt
-        depth_error_d = depth_error / dt
+        self.depth_error_acc += depth_error * dt
+        depth_error_d = (depth_error - self.last_depth_error) / dt if dt > 0 else 0
 
         # Sinais de controle PID
-        self.depth_control = self.kp * depth_error + self.ki * self.depth_error_i + self.kd * depth_error_d
+        self.depth_control = self.kp * depth_error + self.ki * self.depth_error_acc + self.kd * depth_error_d
         self.depth_control = self.clip_signal(self.depth_control)
 
 
