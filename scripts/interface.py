@@ -4,8 +4,7 @@ import rospy
 import FreeSimpleGUI as sg
 import math
 import numpy as np
-from tf.transformations import quaternion_matrix
-
+import tf
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 
@@ -72,6 +71,7 @@ class InterfaceNode:
         self.depth = 0.0
         self.pitch = 0.0
         self.roll = 0.0
+        self.yaw = 0.0
 
         self.depth_marker_id = None  # ID do marcador na régua
         self.tilt_marker_id = None   # ID do marcador no gráfico de tilt
@@ -178,26 +178,26 @@ class InterfaceNode:
 
 
     # ================= UTIL =================
-    def compute_tilt_sim(self, q):
+    # def compute_tilt_sim(self, q):
 
-        # Matriz de rotação (world -> body)
-        R = quaternion_matrix(q)
+    #     # Matriz de rotação (world -> body)
+    #     # R = quaternion_matrix(q)
 
-        # Gravidade no mundo (Z para cima)
-        g_world = np.array([0, 0, -1, 1])
+    #     # Gravidade no mundo (Z para cima)
+    #     g_world = np.array([0, 0, -1, 1])
 
-        # Gravidade no frame do corpo
-        g_body = R.T @ g_world
-        gx, gy, gz = g_body[:3]
+    #     # Gravidade no frame do corpo
+    #     g_body = R.T @ g_world
+    #     gx, gy, gz = g_body[:3]
 
-        # Roll → inclinação lateral (em torno de X)
-        roll = np.arctan2(gx, -gz)
-        roll = np.degrees(roll)  - 90
-        # Pitch → inclinação frontal (em torno de Y)
-        pitch = np.arctan2(gy, -gz)
-        pitch = np.degrees(pitch)
+    #     # Roll → inclinação lateral (em torno de X)
+    #     roll = np.arctan2(gx, -gz)
+    #     roll = np.degrees(roll)  - 90
+    #     # Pitch → inclinação frontal (em torno de Y)
+    #     pitch = np.arctan2(gy, -gz)
+    #     pitch = np.degrees(pitch)
 
-        return roll, pitch
+    #     return roll, pitch
 
     def clamp(self, v, vmin, vmax):
         return max(min(v, vmax), vmin)
@@ -206,18 +206,49 @@ class InterfaceNode:
 
     def state_callback(self, msg):
         self.depth = msg.pose.pose.position.z
+        q = msg.pose.pose.orientation
+        quat = [q.x, q.y, q.z, q.w]
 
-        q = [
-            msg.pose.pose.orientation.x,
-            msg.pose.pose.orientation.y,
-            msg.pose.pose.orientation.z,
-            msg.pose.pose.orientation.w
-        ]
+        # matriz de rotação do quaternion
+        R = tf.transformations.quaternion_matrix(quat)
 
-        roll, pitch = self.compute_tilt_sim(q)
+        # vetor "para cima" no mundo (Z do mundo)
+        g_world = [0, 0, 1, 0]
 
-        # rospy.loginfo(f"R={roll:.2f}, P={pitch:.2f}")
-        self.roll, self.pitch = roll, pitch
+        # gravidade no frame do corpo
+        g_body = R.T.dot(g_world)
+
+        gx = g_body[0]
+        gy = g_body[1]
+        gz = g_body[2]
+
+        # agora extraímos roll e pitch SOMENTE da gravidade
+        roll  = math.atan2(gy, gz)
+        pitch = math.atan2(-gx, math.sqrt(gy*gy + gz*gz))
+
+        roll_deg  = math.degrees(roll)
+        pitch_deg = math.degrees(pitch)
+
+        # sinais típicos para horizonte
+        self.roll  = -roll_deg
+        self.pitch =  pitch_deg
+
+        # return horizon_roll, horizon_pitch
+        # q = msg.pose.pose.orientation
+        # quat = [q.x, q.y, q.z, q.w]
+
+        # (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(quat)
+
+        # roll_deg  = math.degrees(roll) -90
+        # pitch_deg = math.degrees(pitch) -90
+        # yaw_deg   = math.degrees(yaw)
+
+        # # Para horizonte artificial (normalmente):
+        # self.roll  = -roll_deg
+        # self.pitch =  pitch_deg
+        # self.yaw   =  yaw_deg
+
+        # rospy.loginfo(f"R={-roll_deg:.2f}, P={pitch_deg:.2f}, Y={yaw_deg:.2f}")
 
 
 
@@ -272,7 +303,7 @@ class InterfaceNode:
         """
 
         # Limite da régua (exemplo: 0 a 10 m)
-        max_depth = 10.0
+        max_depth = 10.0  # metros
 
         # Normaliza para escala do Graph (0–100)
         y = max(0, min(100, (depth_m / max_depth) * 100))

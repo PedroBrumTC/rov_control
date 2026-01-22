@@ -8,7 +8,7 @@ public class Empuxo : MonoBehaviour
 
     public float volumeFactor = 1.01f; // m³ (ajuste!)
     public float waterLevel = 0f;
-    public float height = 0.3f; // altura do ROV
+    public float height = 0.15f; // altura do ROV
 
     Rigidbody rb;
 
