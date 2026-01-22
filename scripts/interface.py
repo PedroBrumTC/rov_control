@@ -178,26 +178,6 @@ class InterfaceNode:
 
 
     # ================= UTIL =================
-    # def compute_tilt_sim(self, q):
-
-    #     # Matriz de rotação (world -> body)
-    #     # R = quaternion_matrix(q)
-
-    #     # Gravidade no mundo (Z para cima)
-    #     g_world = np.array([0, 0, -1, 1])
-
-    #     # Gravidade no frame do corpo
-    #     g_body = R.T @ g_world
-    #     gx, gy, gz = g_body[:3]
-
-    #     # Roll → inclinação lateral (em torno de X)
-    #     roll = np.arctan2(gx, -gz)
-    #     roll = np.degrees(roll)  - 90
-    #     # Pitch → inclinação frontal (em torno de Y)
-    #     pitch = np.arctan2(gy, -gz)
-    #     pitch = np.degrees(pitch)
-
-    #     return roll, pitch
 
     def clamp(self, v, vmin, vmax):
         return max(min(v, vmax), vmin)
@@ -232,23 +212,6 @@ class InterfaceNode:
         # sinais típicos para horizonte
         self.roll  = -roll_deg
         self.pitch =  pitch_deg
-
-        # return horizon_roll, horizon_pitch
-        # q = msg.pose.pose.orientation
-        # quat = [q.x, q.y, q.z, q.w]
-
-        # (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(quat)
-
-        # roll_deg  = math.degrees(roll) -90
-        # pitch_deg = math.degrees(pitch) -90
-        # yaw_deg   = math.degrees(yaw)
-
-        # # Para horizonte artificial (normalmente):
-        # self.roll  = -roll_deg
-        # self.pitch =  pitch_deg
-        # self.yaw   =  yaw_deg
-
-        # rospy.loginfo(f"R={-roll_deg:.2f}, P={pitch_deg:.2f}, Y={yaw_deg:.2f}")
 
 
 
